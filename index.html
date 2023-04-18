@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>simple chat APP</title>
+    <style>
+        main{
+            margin: auto;
+            width: 100%;
+            display: none;
+
+        }
+        .container{
+            border: 1px solid red;
+            margin: 50px;
+            padding: 50px 10px;
+            width: 400px;
+            margin: auto;
+        }
+        #messages{
+            padding: 0px 10px;
+            margin: auto;
+            border: 1px solid red;
+            /* height: 500px; */
+            width: 400px;
+        }
+        #msg{
+            font-size: 28px;
+            margin-right: 20px;
+            padding: 5px 8px;
+            border-radius: 5px;
+        }
+        #sendbtn{
+            background-color: black;
+            color: aqua;
+            font-size: 28px;
+            border-radius: 5px;
+            padding: 5px 8px;
+            margin: auto;
+            margin-top: 20px;
+        }
+
+        .chats{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #ccc;
+            max-height: fit-content;
+            height: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="joinID">
+        <input type="text" id="name" placeholder="enter name her">
+        <button id="joinbtn">Join Chat</button>
+    </div>
+    <main id="mainID">
+
+        <div class="container">
+            <input type="text" id="msg" placeholder="message">
+            <button id="sendbtn"> Send Message </button>
+        </div>
+        <div id="messages">
+            
+        </div>
+        
+    </main>
+</body>
+
+<script>
+    
+    const joinbtn = document.getElementById('joinbtn');
+    const name = document.getElementById('name');
+    
+    const messages = document.getElementById('messages');
+
+    const mainEl = document.getElementById('mainID');
+
+    let username = ''
+
+    joinbtn.addEventListener('click', ()=>{
+        if(name.value){
+
+            username = name.value;
+
+            console.log(username);
+
+            document.getElementById('joinID').style.display = 'none';
+
+            const socket = new WebSocket("ws://localhost:3000");
+           
+            socket.onmessage = (event) =>{
+                const data = event.data
+                displayMsg(JSON.parse(data))
+                console.log(JSON.parse(event.data))
+            }
+
+            mainEl.style.display = 'flex';
+
+            alert('Successfully joined Chat');
+
+        }else{
+
+            alert('Enter Name ');
+
+        }
+    })
+
+
+    const msg = document.getElementById('msg');
+    const sendbtn = document.getElementById('sendbtn');
+
+    
+    
+    sendbtn.addEventListener('click', ()=>{
+        const socket = new WebSocket("ws://localhost:3000");
+        socket.onopen = () => {
+            console.log("connected to server")
+            socket.send(JSON.stringify({username:username, msg:msg.value}))
+        }
+        socket.onmessage = (event) =>{
+            const data = event.data
+            displayMsg(JSON.parse(data))
+            console.log(JSON.parse(event.data))
+        }
+    })
+
+
+    function displayMsg(data){
+        console.log(data, data.length);
+        const messages = document.getElementById('messages');
+        console.log(messages);
+        const html = data.map((ele)=>{
+            return `<div class="chats">
+                        <p>${ele.username} :-</p> <p>${ele.msg}</p>
+                    </div>`
+        }).join('')
+        messages.innerHTML = html;
+    }
+    
+</script>
+
+</html>
